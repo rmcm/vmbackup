@@ -91,10 +91,11 @@ bannermsg() {
 parse_args() {
 
     local USAGE="
--n    debug: display actions without performing them
+-n    debug - display actions without performing them
+-t    trace - switch on -x in shell
 -h    print this message
 "
-    while getopts :hn OPT; do
+    while getopts :hdnt OPT; do
         case $OPT in
             h|+h)
                 printf "
@@ -103,6 +104,9 @@ $USAGE"
                 ;;
             n|+n)
                 DEBUG="echo ... "
+                ;;
+            t|+t)
+                set -x
                 ;;
             *)
                 echo "usage: `basename $0` [+-hn} [--] ARGS..."
@@ -385,7 +389,7 @@ dailyarchives() {
 ## Backup the VM host system
 backup_host() {
 
-    awk '$3=="ext3"{print}' ./fstab | \
+    awk '$3=="ext3"{print}' /etc/fstab | \
         while read DEV MOUNT TYPE OPTIONS C1 C2; do
     
         # check to see if current srcdir should be exempted
