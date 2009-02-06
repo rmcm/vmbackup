@@ -344,9 +344,8 @@ vm_datastore() {
     test $# -ne 1 && exerr "function vm_datastore() requires 1 arg"
     local _vmid=$1
 
-    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/get.datastores $_vmid | \
-        tr -s ' '| \
-        sed '2!d;s/^[[:alnum:]]* //;s/ //g'
+    $VMCMD -U $VM_USER -P $VM_PWD vmsvc/get.datastores $_vmid | \
+        awk '$1=="url"{print $2;exit}'
 
     return $?
 }
@@ -358,7 +357,7 @@ vm_powerstate() {
     test $# -ne 1 && exerr "function vm_powerstate() requires 1 arg"
     local _vmid=$1
 
-    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.getstate $_vmid |sed 1d
+    $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.getstate $_vmid |sed 1d
 
     return $?
 }
