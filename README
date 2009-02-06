@@ -1,0 +1,26 @@
+A simple shell script to manage backups of a VMware server
+in two stages;
+
+1. A mirror of VM folders, and host filesystems with daily tarballs
+
+2. A copy of latest daily tarballs to remote/removable media
+
+Manifest:
+    README                      - this file
+    vmwbackup.sh                - controlling script, called from cron etc
+    vmbackup-functions.sh       - supporting functions
+    vmbackuprc-example          - local configuration (copy to .vmbackuprc)
+
+Installation:
+
+    Copy vmbackup{,-backup}.sh and your .vmbackuprc (see example) to a
+    destination folder, and run vmbackup.sh from that folder (ie cd
+    set to destination folder)
+
+Configuration:
+
+    Configurable variables are commented in vmbackuprc-example. There
+    are settings for backup volumes, removable media volumes,
+    purge-times, reporting mail-address etc. There are also hooks for
+    injecting script at the start and end of vmbackup.sh proper
+    ... for example to spin-up/spin-down USB disks.
