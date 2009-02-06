@@ -336,6 +336,21 @@ vm_getlist() {
     done
     echo $_vmlist
 }
+
+## Get datastore
+vm_datastore() {
+    # get datastore  of vm
+    # arg1 = vm id
+    test $# -ne 1 && exerr "function vm_datastore() requires 1 arg"
+    local _vmid=$1
+
+    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/get.datastores $_vmid | \
+        tr -s ' '| \
+        sed '2!d;s/^[[:alnum:]]* //;s/ //g'
+
+    return $?
+}
+
 ## Get powerstate of specified host
 vm_powerstate() {
     # get power state of vm
@@ -417,15 +432,15 @@ backup_guests() {
             continue
         fi
         
-        
-        _STATE=`get_powerstate $VMID`
-        if test "${_STATE}" = "Powered on" ; then
+        local _state=`vm_powerstate $VMID`
+        if test "${_state}" = "Powered on" ; then
             if ! vm_suspend $VMID ; then
                 echo "${ERROR} failed to suspend $NAME ($VMID) ... skipping"
                 continue
             fi
         fi
-        dir_backup $VMDIR $VMGUEST_DIR $VMGUEST_DAYS_KEEP $VMGUEST_ARC "${VMGUEST_EXEMPT}"
+        local _datastore=`vm_datastore $VMID`
+        dir_backup ${_datastore}/$VMDIR $VMGUEST_DIR $VMGUEST_DAYS_KEEP $VMGUEST_ARC
         if test "${_STATE}" = "Powered on" ; then
             if ! vm_resume $VMID ; then
                 echo "${ERROR} failed to resume $NAME ($VMID) ... skipping"
