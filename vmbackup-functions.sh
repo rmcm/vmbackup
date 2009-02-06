@@ -29,10 +29,12 @@ SENDTO="root@localhost"
 SITENAME="SITE-NAME"
 BACKUPMOUNT=/backups
 DAILYMOUNT=/daily-backups
+MOUNTMEDIA=yes
+VMDATASTORE=/vm
 VMCMD=vmware-vim-cmd
 VM_USER=root
 VM_PWD=password
-VMHOST_EXEMPT="/backups /daily-backups /vm"
+VMHOST_EXEMPT="${BACKUPMOUNT} ${DAILYMOUNT} ${VMDATASTORE}"
 VMHOST_DAYS_KEEP=5
 VMGUEST_EXEMPT=""
 VMGUEST_DAYS_KEEP=5
@@ -156,7 +158,7 @@ mount_media() {
     local _mountpoint=$1
 
     if test -z ${_mountpoint} ; then
-        exerr "<SYSTEM ERROR>>> mountmedia requires name of mount point"
+        exerr "<SYSTEM ERROR>>> mount_media requires name of mount point"
     fi
 
     echo "Mounting $_mountpoint"
@@ -179,11 +181,31 @@ mount_media() {
 
 ## Check structure of mirror media
 check_media() {
+    # arg1 = mode (up or down)
+    test $# -ne 1 && exerr "function check_media() requires 1 arg"
+
+    _mode=$1
+
+    ## is mounting required?
+    if test "${MOUNTMEDIA}" = "yes" ; then
+
+        if test ${_mode} = "down" ; then
+            echo "Unmounting $BACKUPMOUNT and $DAILYMOUNT"
+            umount $BACKUPMOUNT $DAILYMOUNT
+            return $?
+        fi
+
+        if ! mount_media $BACKUPMOUNT || ! mount_media $DAILYMOUNT ; then
+            return 1
+        fi
+    fi
+
     ## if the archives directory does not  exist, create it
     if ! mkdir -p $BACKUPMOUNT/{host,vmware}/{directories,archives} \
         $BACKUPMOUNT/daily-archives ; then
         return 1
     fi
+
     return 0
 }
 
@@ -452,7 +474,7 @@ backup_guests() {
 
 }
 
-# parse script arguments
+## parse script arguments
 parse_args $*
 
 # end vmbackup-functions.sh

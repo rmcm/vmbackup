@@ -1,5 +1,5 @@
 #!/bin/sh
-# vmbackup.sh ---
+# vmbackup-test.sh ---
 # -*- Shell-script -*-
 # Copyright (C) 2009 Rex McMaster
 # Author: Rex McMaster rex@mcmaster.id.au
@@ -20,7 +20,7 @@
 # Boston, MA 02110-1301, USA.
 
 ## ############################################################
-## vmbackup controller: requires support functions in
+## vmbackup controller testing: requires support functions in
 ##     vmbackup-functions.sh 
 ## ############################################################
 
@@ -33,41 +33,11 @@ if ! test -s "${_FUNCTFILE}" ; then
 fi
 . $_FUNCTFILE
 
-# Perform in subshell to manage output
-(
-    ## check the backup media
-    bannermsg "Checking backup media"
-    if ! check_media "up" ; then
-        exerr "Media checked failed ... aborting"
-    fi
+## Add test function calls here
+##
+## eg to test media-mounting
+##
+## check_media "up"
+## check_media "down"
 
-    ## Backup the host directories
-    bannermsg "Backing up VMHOST Folders"
-    backup_host
-    
-    ## backup VM Guests
-    bannermsg "Backing up VM Guest Folders"
-    backup_guests
-    
-    ## Backup daily archives to offsite media
-    bannermsg "Creating daily offsite backup"
-    dailyarchives
-
-    ## Check backup media - umount
-    bannermsg "Final media check"
-    if ! check_media "down" ; then
-        echo "${ERRORTAG} failed final media check"
-    fi
-
-    ) 2>&1 | tee -a /var/log/backups/backups.log \
-        > /var/log/backups/backup-daily.log
-
-MSGSTATUS="Succeeded"
-if grep -q "$ERRORTAG" /var/log/backups/backup-daily.log ; then
-    MSGSTATUS="Failed"
-fi
-
-grep -v 'socket ignored' /var/log/backups/backup-daily.log | \
-    mail -s "${SITENAME}:Backup ${MSGSTATUS}" ${SENDTO}
-
-# end vmbackup.sh
+# end vmbackup-test.sh

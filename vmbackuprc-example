@@ -1,5 +1,5 @@
-# vmbackuprc-example ---
 # -*- Shell-script -*-
+# vmbackuprc-example ---
 # Copyright (C) 2009 Rex McMaster
 # Author: Rex McMaster rex@mcmaster.id.au
 # 
@@ -36,6 +36,13 @@ BACKUPMOUNT=/backups
 ## Removable, daily media for daily tarballs offsite
 DAILYMOUNT=/daily-archives
 
+## Do media require mounting? (yes or null)
+MOUNTMEDIA=yes
+
+## VM Datastore - only used for building default VMHOST_EXEMPT
+##  - not used to determine indidivual vm datastores
+VMDATASTORE="/vm"
+
 # Days to keep tarballs - host folders
 VMHOST_DAYS_KEEP=5
 
@@ -43,7 +50,7 @@ VMHOST_DAYS_KEEP=5
 VMGUEST_DAYS_KEEP=5
 
 ## Filesystems to exclude - use the mount-directory name.
-VMHOST_EXEMPT="/vm /backups"
+VMHOST_EXEMPT="${BACKUPMOUNT} ${DAILYMOUNT} ${VMDATASTORE}"
 
 ## Guests to exclude - guest name
 VMGUEST_EXEMPT=""
