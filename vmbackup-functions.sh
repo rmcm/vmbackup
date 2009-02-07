@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # vmbackup-functions.sh ---
 # -*- Shell-script -*-
 # Copyright (C) 2009 Rex McMaster
@@ -201,7 +201,7 @@ check_media() {
     fi
 
     ## if the archives directory does not  exist, create it
-    if ! mkdir -p $BACKUPMOUNT/{host,vmware}/{directories,archives} \
+    if ! mkdir -p $BACKUPMOUNT/{vmhost,vmguest}/{directories,archives} \
         $BACKUPMOUNT/daily-archives ; then
         return 1
     fi
@@ -261,7 +261,13 @@ exec_rsync() {
         fi
     fi
     ${DEBUG} rsync -ax --delete $_srcdir $_dstdir
-    return $?
+    local _status=$?
+    # Skip "file vanished" errors
+    if test ${_status} = 24 ; then
+        return 0
+    else
+        return $?
+    fi
 }
 
 ## build archives.
@@ -351,11 +357,12 @@ dir_backup() {
 
 ## Get list of guests
 vm_getlist() {
-    _vmlist=
-    $VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d | \
-        while read VMID NAME TYPE LOC OS VMVER; do
+
+    local _vmlist=
+    while read VMID NAME TYPE LOC OS VMVER; do
         _vmlist="${_vmlist} $NAME"
-    done
+    done < <($VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d)
+
     echo $_vmlist
 }
 
@@ -384,6 +391,18 @@ vm_powerstate() {
     return $?
 }
 
+## Get powerstate of specified host
+vm_heartbeat() {
+    # get heartbeat state of vm
+    # arg1 = vm id
+    test $# -ne 1 && exerr "function vm_heartbeat() requires 1 arg"
+    local _vmid=$1
+
+    $VMCMD -U $VM_USER -P $VM_PWD vmsvc/get.guestheartbeatStatus $_vmid
+
+    return $?
+}
+
 # Suspend vm for backup
 vm_suspend() {
     # suspend vm
@@ -391,21 +410,71 @@ vm_suspend() {
     test $# -ne 1 && exerr "function vm_suspend() requires 1 arg"
     local _vmid=$1
 
-    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.suspend $_vmid
+    local _count=0
+    local _step=30
+    local _limit=1200
+    local _state=
 
-    return $?
+    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.suspend $_vmid
+    echo -n "... suspending vm $_vmid "
+    while : ; do
+        
+        sleep $_step
+        echo -n ".$_count"
+
+        _state="`vm_heartbeat ${_vmid}`"
+        if test "$_state" = "gray" ; then
+            echo " suspended"
+            return 0
+        fi
+        if test $_count -gt $_limit ; then
+            echo " time limit expired .. state is ${_state}"
+            return 1
+        fi
+        _count=`expr $_count + $_step`
+
+    done
+
+    # this should never happen!
+    echo
+    return 0
 }
 
 # Resume vm
 vm_resume() {
-    # suspend vm
+    # resume vm
     # arg1 = vm id
     test $# -ne 1 && exerr "function vm_resume() requires 1 arg"
     local _vmid=$1
 
-    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.on $_vmid
+    local _count=0
+    local _step=30
+    local _limit=1200
+    local _state=
 
-    return $?
+    ${DEBUG} $VMCMD -U $VM_USER -P $VM_PWD vmsvc/power.on $_vmid
+    echo -n "... starting vm $_vmid "
+    while : ; do
+        
+        sleep $_step
+        echo -n ".$_count"
+
+        _state="`vm_heartbeat ${_vmid}`"
+        if test "$_state" = "green" ; then
+            echo " powered-on"
+            return 0
+        fi
+        if test $_count -gt $_limit ; then
+            echo " time limit expired .. state is ${_state}"
+            return 1
+        fi
+        _count=`expr $_count + $_step`
+
+    done
+
+    # this should never happen!
+    echo
+    return 0
 }
 
 ## Prepare a daily archive for offsite storage
@@ -425,8 +494,7 @@ dailyarchives() {
 ## Backup the VM host system
 backup_host() {
 
-    awk '$3=="ext3"{print}' /etc/fstab | \
-        while read DEV MOUNT TYPE OPTIONS C1 C2; do
+    while read DEV MOUNT TYPE OPTIONS C1 C2; do
     
         # check to see if current srcdir should be exempted
         if check_exempt $MOUNT "${VMHOST_EXEMPT}" ; then
@@ -436,15 +504,14 @@ backup_host() {
 
         dir_backup $MOUNT $VMHOST_DIR $VMHOST_DAYS_KEEP $VMHOST_ARC
 
-    done
+    done < <(awk '$3=="ext3"{print}' /etc/fstab)
 
 }
 
 ## Backup the VM guests
 backup_guests() {
 
-    $VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d | \
-        while read VMID NAME TYPE LOC OS VMVER; do
+    while read VMID NAME TYPE LOC OS VMVER; do
 
         VMDIR=${LOC%/*}
         # check to see if current vm should be exempted
@@ -459,20 +526,25 @@ backup_guests() {
                 echo "${ERROR} failed to suspend $NAME ($VMID) ... skipping"
                 continue
             fi
+            sleep 300
         fi
         local _datastore=`vm_datastore $VMID`
         dir_backup ${_datastore}/$VMDIR $VMGUEST_DIR $VMGUEST_DAYS_KEEP $VMGUEST_ARC
+        sleep 300
         if test "${_STATE}" = "Powered on" ; then
             if ! vm_resume $VMID ; then
-                echo "${ERROR} failed to resume $NAME ($VMID) ... skipping"
-                continue
+                echo "${ERROR} failed to resume $NAME ($VMID)"
             fi
+            sleep 300
         fi
         
-    done
- 
+    done < <($VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d)
+
 
 }
+
+## make sure log dir exists
+mkdir -p ${VMBACKUPLOG:-"/var/log/backups/"}
 
 ## parse script arguments
 parse_args $*

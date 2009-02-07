@@ -34,7 +34,7 @@ DEBUG=${DEBUG:=""}
 BACKUPMOUNT=/backups
 
 ## Removable, daily media for daily tarballs offsite
-DAILYMOUNT=/daily-archives
+DAILYMOUNT=/daily-backups
 
 ## Do media require mounting? (yes or null)
 MOUNTMEDIA=yes
@@ -57,6 +57,9 @@ VMGUEST_EXEMPT=""
 
 ## VMware script command
 VMCMD=vmware-vim-cmd
+
+## Logs folder
+VMBACKUPLOG=/var/log/backups
 
 ## Function to execute at beginning of backups
 execute_at_beg() {

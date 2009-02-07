@@ -1,0 +1,10 @@
+2009-02-07  Rex McMaster  <rex@mcmaster.id.au>
+
+	* vmbackup-functions.sh (exec_rsync): ignore "vanished file"
+	errors
+	(vm_heartbeat): new function - finer reporting of guest state
+	during power-state changes
+	(vm_suspend,vm_resume): use vm_heartbeat to monitor suspend/resume
+	process
+
+

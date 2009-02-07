@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # vmbackup.sh ---
 # -*- Shell-script -*-
 # Copyright (C) 2009 Rex McMaster
@@ -43,31 +43,35 @@ fi
 
     ## Backup the host directories
     bannermsg "Backing up VMHOST Folders"
+    sleep 60
     backup_host
     
     ## backup VM Guests
     bannermsg "Backing up VM Guest Folders"
+    sleep 60
     backup_guests
     
     ## Backup daily archives to offsite media
     bannermsg "Creating daily offsite backup"
+    sleep 60
     dailyarchives
 
     ## Check backup media - umount
     bannermsg "Final media check"
+    sleep 60
     if ! check_media "down" ; then
         echo "${ERRORTAG} failed final media check"
     fi
 
-    ) 2>&1 | tee -a /var/log/backups/backups.log \
-        > /var/log/backups/backup-daily.log
+    ) 2>&1 | tee -a ${VMBACKUPLOG}/backups.log \
+        > ${VMBACKUPLOG}/backup-daily.log
 
 MSGSTATUS="Succeeded"
-if grep -q "$ERRORTAG" /var/log/backups/backup-daily.log ; then
+if grep -q "$ERRORTAG" ${VMBACKUPLOG}/backup-daily.log ; then
     MSGSTATUS="Failed"
 fi
 
-grep -v 'socket ignored' /var/log/backups/backup-daily.log | \
+grep -v 'socket ignored' ${VMBACKUPLOG}/backup-daily.log | \
     mail -s "${SITENAME}:Backup ${MSGSTATUS}" ${SENDTO}
 
 # end vmbackup.sh

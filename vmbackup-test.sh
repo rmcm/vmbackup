@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # vmbackup-test.sh ---
 # -*- Shell-script -*-
 # Copyright (C) 2009 Rex McMaster
