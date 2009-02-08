@@ -266,7 +266,7 @@ exec_rsync() {
     if test ${_status} = 24 ; then
         return 0
     else
-        return $?
+        return ${_status}
     fi
 }
 
