@@ -206,6 +206,11 @@ check_media() {
         return 1
     fi
 
+    ## remove current links from daily-archives folder
+    if ! rm -vf $BACKUPMOUNT/daily-archives/* ; then
+        return 1
+    fi
+
     return 0
 }
 
