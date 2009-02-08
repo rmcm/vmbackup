@@ -531,7 +531,7 @@ backup_guests() {
         local _datastore=`vm_datastore $VMID`
         dir_backup ${_datastore}/$VMDIR $VMGUEST_DIR $VMGUEST_DAYS_KEEP $VMGUEST_ARC
         sleep 300
-        if test "${_STATE}" = "Powered on" ; then
+        if test "${_state}" = "Powered on" ; then
             if ! vm_resume $VMID ; then
                 echo "${ERROR} failed to resume $NAME ($VMID)"
             fi
