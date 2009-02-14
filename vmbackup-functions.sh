@@ -38,6 +38,7 @@ VMHOST_EXEMPT="${BACKUPMOUNT} ${DAILYMOUNT} ${VMDATASTORE}"
 VMHOST_DAYS_KEEP=5
 VMGUEST_EXEMPT=""
 VMGUEST_DAYS_KEEP=5
+FSTYPES=ext3
 
 ## ############################################################
 ## Configuration file
@@ -265,7 +266,7 @@ exec_rsync() {
             return 1
         fi
     fi
-    ${DEBUG} rsync -ax --delete $_srcdir $_dstdir
+    ${DEBUG} rsync -axS --delete $_srcdir $_dstdir
     local _status=$?
     # Skip "file vanished" errors
     if test ${_status} = 24 ; then
@@ -509,7 +510,7 @@ backup_host() {
 
         dir_backup $MOUNT $VMHOST_DIR $VMHOST_DAYS_KEEP $VMHOST_ARC
 
-    done < <(awk '$3=="ext3"{print}' /etc/fstab)
+    done < <(awk '$3~/'${FSTYPES}'/{print}' /etc/fstab)
 
 }
 

@@ -39,6 +39,10 @@ DAILYMOUNT=/daily-backups
 ## Do media require mounting? (yes or null)
 MOUNTMEDIA=yes
 
+## host filesystem types to backup 
+##   regex - eg "ext3|reiserfs"
+FSTYPES=ext3
+
 ## VM Datastore - only used for building default VMHOST_EXEMPT
 ##  - not used to determine indidivual vm datastores
 VMDATASTORE="/vm"
