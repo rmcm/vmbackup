@@ -35,6 +35,10 @@ fi
 
 # Perform in subshell to manage output
 (
+    if test -n "${_EXECUTE_AT_BEG}" ; then
+        ${_EXECUTE_AT_BEG}
+    fi
+
     ## check the backup media
     bannermsg "Checking backup media"
     if ! check_media "up" ; then
@@ -61,6 +65,10 @@ fi
     sleep 60
     if ! check_media "down" ; then
         echo "${ERRORTAG} failed final media check"
+    fi
+
+    if test -n "${_EXECUTE_AT_END}" ; then
+        ${_EXECUTE_AT_END}
     fi
 
     ) 2>&1 | tee -a ${VMBACKUPLOG}/backups.log \
