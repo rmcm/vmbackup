@@ -287,7 +287,7 @@ exec_tgz() {
     local _dsttgz=$3
     local _dsttgz_base=`basename ${_dsttgz}`
 
-    echo "... archiving $_srcdir (in $_srcpar) to $_dstdir"
+    echo "... archiving $_srcdir (in $_srcpar) to $_dsttgz"
  
     if ! ${DEBUG} tar --one-file-system -C $_srcpar -zcf $_dsttgz $_srcdir ; then
         echo "... failed to create $_dsttgz"
@@ -359,17 +359,6 @@ dir_backup() {
         continue
     fi
     ${DEBUG} sleep 5
-}
-
-## Get list of guests
-vm_getlist() {
-
-    local _vmlist=
-    while read VMID NAME TYPE LOC OS VMVER; do
-        _vmlist="${_vmlist} $NAME"
-    done < <($VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d)
-
-    echo $_vmlist
 }
 
 ## Get datastore
@@ -533,6 +522,8 @@ backup_guests() {
                 continue
             fi
             sleep 300
+        else
+            echo "VM is already not Powered-On: (state for $VMID is ${_state})"
         fi
         local _datastore=`vm_datastore $VMID`
         dir_backup ${_datastore}/$VMDIR $VMGUEST_DIR $VMGUEST_DAYS_KEEP $VMGUEST_ARC
@@ -544,7 +535,7 @@ backup_guests() {
             sleep 300
         fi
         
-    done < <($VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |sed 1d)
+    done < <($VMCMD -U $VM_USER -P $VM_PWD vmsvc/getallvms |awk 'NF>=6 && $1+0>0{print}')
 
 
 }
