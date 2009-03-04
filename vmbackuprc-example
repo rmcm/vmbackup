@@ -53,13 +53,24 @@ VMHOST_DAYS_KEEP=5
 # Days to keep tarballs - guests
 VMGUEST_DAYS_KEEP=5
 
-## Filesystems to exclude - use the mount-directory name.
+## Filesystems to exclude - use the mount-directory name. (filesystems
+## are the unit of mirroring)
 VMHOST_EXEMPT="${BACKUPMOUNT} ${DAILYMOUNT} ${VMDATASTORE}"
 
 ## Pathname to a file containing list of folders/files to exempt from
+## the rsync mirrors in VMHOST. This is used with the rsync
+## "--exclude-from" option. 
+VMHOST_RSYNC_EXEMPT_FROM=vmbackup_rsync_exclude.list
+
+## Pathname to a file containing list of folders/files to exempt from
 ## tar backups in VMHOST. This is used with the tar "--exclude-from"
-## option
-VMHOST_TAR_EXEMPT_FROM=vmbackup_exclude.list
+## option. Note that the paths you add to this file are relative to
+## the /backups/vmhost/directories/ ... so don't include leading "/"
+## .. ie "/home/" would be "home/" and "/" would be "root/". So to
+## exclude the "/etc/samba/" tree from the tarball you would add
+## "root/etc/samba/" (note absence of leading /), while to exclude
+## "/home/george/" you would add "home/george" to your exclude file.
+VMHOST_TAR_EXEMPT_FROM=vmbackup_tar_exclude.list
 
 ## Guests to exclude - guest name
 VMGUEST_EXEMPT=""

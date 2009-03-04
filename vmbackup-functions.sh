@@ -266,7 +266,13 @@ exec_rsync() {
             return 1
         fi
     fi
-    ${DEBUG} rsync -axS --delete $_srcdir $_dstdir
+
+    local _rsync_args="-axS --delete"
+    if test -n "$VMHOST_RSYNC_EXEMPT_FROM" -a -s "${VMHOST_RSYNC_EXEMPT_FROM}" ; then
+        _rsync_args="${_rsync_args} --exclude-from=${VMHOST_RSYNC_EXEMPT_FROM}"
+        echo "... excluding files listed in ${VMHOST_RSYNC_EXEMPT_FROM}"
+    fi
+    ${DEBUG} rsync ${_rsync_args} $_srcdir $_dstdir
     local _status=$?
     # Skip "file vanished" errors
     if test ${_status} = 24 ; then
