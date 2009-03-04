@@ -279,17 +279,23 @@ exec_rsync() {
 ## build archives.
 exec_tgz() {
     # tar rsync'd directory tree to archive
-    # arg1 = sourcedir-parent arg2 = sourcedirectory arg3 = destination archive
+    # arg1 = sourcedir-parent
+    # arg2 = sourcedirectory
+    # arg3 = destination archive
     test $# -ne 3 && exerr "function exec_tgz() requires 3 args"
 
     local _srcpar=$1
     local _srcdir=$2
     local _dsttgz=$3
     local _dsttgz_base=`basename ${_dsttgz}`
-
+    local _tar_args="--one-file-system"
+    
     echo "... archiving $_srcdir (in $_srcpar) to $_dsttgz"
- 
-    if ! ${DEBUG} tar --one-file-system -C $_srcpar -zcf $_dsttgz $_srcdir ; then
+    if test -n "$VMHOST_TAR_EXEMPT_FROM" -a -s "${VMHOST_TAR_EXEMPT_FROM}" ; then
+        _tar_args="${_tar_args} --exclude-from ${VMHOST_TAR_EXEMPT_FROM}"
+        echo "... excluding files listed in ${VMHOST_TAR_EXEMPT_FROM}"
+    fi
+    if ! ${DEBUG} tar ${_tar_args} -C $_srcpar -zcf $_dsttgz $_srcdir ; then
         echo "... failed to create $_dsttgz"
         return 1
     fi
@@ -325,7 +331,9 @@ purge_archives() {
 ## Backup a specified folder to mirror and archive
 dir_backup() {
     # backup FOLDER
-    # arg1 = source arg2 = sync directory arg3 = purge-age in days
+    # arg1 = source 
+    # arg2 = sync directory
+    # arg3 = purge-age in days
     # arg4 = archive directory
     test $# -ne 4 && exerr "function dir_backup() requires 4 args"
 

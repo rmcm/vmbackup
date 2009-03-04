@@ -56,6 +56,11 @@ VMGUEST_DAYS_KEEP=5
 ## Filesystems to exclude - use the mount-directory name.
 VMHOST_EXEMPT="${BACKUPMOUNT} ${DAILYMOUNT} ${VMDATASTORE}"
 
+## Pathname to a file containing list of folders/files to exempt from
+## tar backups in VMHOST. This is used with the tar "--exclude-from"
+## option
+VMHOST_TAR_EXEMPT_FROM=vmbackup_exclude.list
+
 ## Guests to exclude - guest name
 VMGUEST_EXEMPT=""
 
