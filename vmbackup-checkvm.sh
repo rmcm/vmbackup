@@ -34,7 +34,7 @@ fi
 . $_FUNCTFILE
 
 
-for VMID in $_VMBARGS ; do
+for VMID in $* ; do
     _state=`vm_powerstate $VMID`                                                                                                                                
     if ! test "${_state}" = "Powered on" ; then                                                                                                                 
         vm_resume $VMID                                                                                                                                           
