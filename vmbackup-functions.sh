@@ -118,6 +118,8 @@ $USAGE"
     done
     shift `expr $OPTIND - 1`
     OPTIND=1
+    # hold remaining arguments - for use outside this function
+    _VMB_ARGS=$*
 }
 
 ## set a target list from possible, include and exclude lists
@@ -559,5 +561,8 @@ mkdir -p ${VMBACKUPLOG:-"/var/log/backups/"}
 
 ## parse script arguments
 parse_args $*
+## Reinstate $* (getopts is executed inside a function - parse_args)
+set XXX $_VMB_ARGS
+shift 1
 
 # end vmbackup-functions.sh

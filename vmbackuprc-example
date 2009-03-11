@@ -85,7 +85,7 @@ VMBACKUPLOG=/var/log/backups
 execute_at_beg() {
     # wake mirror drive up - hack for Seagate FreeAgent USB disk
     # /sbin/sdparm --command=start /dev/sdc
-
+    :
 }
 _EXECUTE_AT_BEG="execute_at_beg"
 
@@ -97,6 +97,7 @@ execute_at_end() {
 
     # stop mirror drive - hack for Seagate FreeAgent USB disk
     # /sbin/sdparm --command=stop /dev/sdc
+    :
 }
 _EXECUTE_AT_END="execute_at_end"
 
