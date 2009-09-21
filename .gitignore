@@ -1,2 +1,3 @@
 *~
 /.vmbackuprc
+/vmbackup_exclude.list
